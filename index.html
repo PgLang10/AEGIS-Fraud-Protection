@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS — Fraud Protection</title>
+<style>
+:root{
+  --navy:#081b2b; --navy2:#0d2a3d; --teal:#16a6a0; --mint:#c9f4e8;
+  --mint2:#e9fbf5; --text:#163042; --muted:#718392; --line:#dce8e7;
+  --white:#fff; --danger:#d94b5b; --amber:#d48a22; --success:#218a68;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f4f8f7;color:var(--text)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh}
+.topbar{height:74px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 34px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--mint);color:var(--navy);display:grid;place-items:center;font-weight:900}
+.brand h1{font-size:20px;letter-spacing:1.5px;margin:0}
+.brand span{display:block;font-size:11px;color:#a9c3cf;letter-spacing:.7px;margin-top:2px}
+.server{font-size:12px;color:#b9d6d5;display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:#55d7a8;box-shadow:0 0 0 4px rgba(85,215,168,.12)}
+.nav{background:#fff;border-bottom:1px solid var(--line);display:flex;padding:0 34px;gap:8px}
+.tab{border:0;background:transparent;color:var(--muted);padding:17px 18px;font-weight:700;border-bottom:3px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+main{max-width:1180px;margin:0 auto;padding:30px 24px 50px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.page-head h2{margin:0;font-size:28px;color:var(--navy)}
+.page-head p{margin:7px 0 0;color:var(--muted)}
+.badge{background:var(--mint2);color:var(--teal);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 30px rgba(8,27,43,.045)}
+.card h3{margin:0 0 18px;font-size:17px;color:var(--navy)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field label{display:block;font-size:12px;font-weight:800;color:#506777;margin-bottom:6px}
+.field input,.field select{width:100%;border:1px solid #cfdddd;border-radius:10px;padding:11px 12px;background:#fbfdfd;color:var(--text);outline:none}
+.field input:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,166,160,.10)}
+.full{grid-column:1/-1}
+.check{display:flex;align-items:center;gap:9px;height:42px}
+.check input{width:17px;height:17px;accent-color:var(--teal)}
+.actions{display:flex;gap:10px;margin-top:18px}
+.primary,.secondary,.danger{border:0;border-radius:10px;padding:12px 17px;font-weight:800}
+.primary{background:var(--navy);color:#fff}
+.primary:hover{background:#12364d}
+.secondary{background:var(--mint2);color:var(--teal)}
+.danger{background:#fff0f1;color:var(--danger)}
+.scenario{display:grid;gap:10px}
+.scenario button{text-align:left;background:#f7fbfa;border:1px solid var(--line);border-radius:12px;padding:13px}
+.scenario strong{display:block;color:var(--navy);font-size:13px}
+.scenario span{font-size:11px;color:var(--muted)}
+.result{margin-top:20px;display:none}
+.result.show{display:block}
+.score-wrap{display:flex;align-items:center;gap:18px}
+.score{font-size:48px;font-weight:900;color:var(--navy);line-height:1}
+.score-label{font-size:12px;color:var(--muted)}
+.decision{display:inline-block;margin-top:8px;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900}
+.allow{background:#e8f7f0;color:var(--success)}
+.step{background:#fff4df;color:var(--amber)}
+.block{background:#ffecef;color:var(--danger)}
+.bar{height:8px;background:#e9f0ef;border-radius:99px;overflow:hidden;margin:14px 0}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:99px}
+.contribution{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf2f1;font-size:12px}
+.contribution:last-child{border-bottom:0}
+.positive{color:var(--danger);font-weight:800}
+.negative{color:var(--success);font-weight:800}
+.alert{padding:13px;border-radius:12px;background:#fff0f1;color:#a43c49;font-size:12px;margin-top:14px}
+.empty{padding:38px;text-align:center;color:var(--muted);background:#fbfdfd;border:1px dashed #cbdcda;border-radius:14px}
+.txn-list{display:grid;gap:12px}
+.txn{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff}
+.txn-top{display:flex;justify-content:space-between;gap:12px}
+.txn-title{font-weight:900;color:var(--navy)}
+.meta{font-size:11px;color:var(--muted);margin-top:4px}
+.status{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}
+.status.pending_guardian{background:#fff0f1;color:var(--danger)}
+.status.approved{background:#e8f7f0;color:var(--success)}
+.status.denied{background:#f1f2f3;color:#65727a}
+.status.allow{background:#e8f7f0;color:var(--success)}
+.status.step_up_verification{background:#fff4df;color:var(--amber)}
+.txn-bottom{display:flex;justify-content:space-between;align-items:end;margin-top:14px}
+.amount{font-size:21px;font-weight:900;color:var(--navy)}
+.smallscore{font-size:12px;color:var(--muted)}
+.drivers{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}
+.driver{background:var(--mint2);color:#26766f;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:800}
+.hidden{display:none!important}
+.toast{position:fixed;right:22px;bottom:22px;background:var(--navy);color:#fff;padding:13px 16px;border-radius:11px;font-size:12px;box-shadow:0 12px 35px rgba(8,27,43,.2);display:none;z-index:10}
+.toast.show{display:block}
+@media(max-width:800px){
+  .topbar{padding:0 18px}.nav{padding:0 10px;overflow:auto}.tab{padding:15px 10px;white-space:nowrap}
+  main{padding:22px 14px}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">A</div>
+      <div><h1>AEGIS</h1><span>Adaptive Early-warning & Guardian Intelligence System</span></div>
+    </div>
+    <div class="server"><i class="dot"></i> Risk engine online</div>
+  </header>
+
+  <nav class="nav">
+    <button class="tab active" data-tab="customer">Customer App</button>
+    <button class="tab" data-tab="guardian">Guardian Dashboard</button>
+    <button class="tab" data-tab="log">Risk Engine Log</button>
+  </nav>
+
+  <main>
+    <section id="customer" class="panel">
+      <div class="page-head">
+        <div><h2>Protected transfer</h2><p>Every transfer is scored by the live Logistic Regression risk engine.</p></div>
+        <span class="badge">MODEL · LOGISTIC REGRESSION</span>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Transaction details</h3>
+          <form id="txForm">
+            <div class="form-grid">
+              <div class="field"><label>Customer ID</label><input id="customer_id" value="CUST-1042"></div>
+              <div class="field"><label>Payee</label><input id="payee" value="Rahul Sharma"></div>
+              <div class="field"><label>Amount (₹)</label><input id="amount" type="number" min="1" value="2500"></div>
+              <div class="field"><label>Typical amount (₹)</label><input id="typical_amount" type="number" min="1" value="3000"></div>
+              <div class="field"><label>Hour of day</label><input id="hour" type="number" min="0" max="23" value="14"></div>
+              <div class="field"><label>Transactions in last hour</label><input id="velocity_last_hour" type="number" min="0" value="1"></div>
+              <div class="field"><label>Payee status</label><select id="new_payee"><option value="0">Existing payee</option><option value="1">New payee</option></select></div>
+              <div class="field"><label>Off-hours activity</label><select id="off_hours"><option value="0">Normal hours</option><option value="1">Off-hours</option></select></div>
+              <div class="field"><label>Urgency-language flag</label><select id="urgency_language_flag"><option value="0">Not detected</option><option value="1">Detected</option></select></div>
+              <div class="field"><label>Behavioral anomaly</label><select id="behavioral_anomaly_flag"><option value="0">Normal</option><option value="1">Anomalous</option></select></div>
+            </div>
+            <div class="actions">
+              <button class="primary" type="submit">Analyze transaction</button>
+              <button class="secondary" type="button" id="clearBtn">Clear result</button>
+            </div>
+          </form>
+
+          <div id="result" class="result card" style="padding:18px;background:#fbfdfd">
+            <div class="score-wrap">
+              <div><div id="score" class="score">—</div><div class="score-label">MODEL RISK SCORE</div></div>
+              <div><div id="decision" class="decision">—</div><div id="decisionText" class="meta"></div></div>
+            </div>
+            <div class="bar"><i id="scoreBar" style="width:0%"></i></div>
+            <strong style="font-size:12px">Top model drivers</strong>
+            <div id="contributions"></div>
+            <div id="guardianAlert" class="alert hidden">High-risk transfer: cooling-off applied and a guardian alert has been created.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Judge-ready scenarios</h3>
+          <p class="meta" style="margin-bottom:15px">Load a known-safe or high-risk case, then press Analyze.</p>
+          <div class="scenario">
+            <button type="button" id="lowScenario"><strong>Low risk · instant allow</strong><span>Existing payee · normal hours · low velocity · typical amount</span></button>
+            <button type="button" id="mediumScenario"><strong>Medium risk · step-up</strong><span>Moderately unusual amount/activity</span></button>
+            <button type="button" id="highScenario"><strong>High risk · guardian alert</strong><span>New payee · off-hours · urgency · anomaly · high velocity</span></button>
+          </div>
+          <div style="margin-top:22px;padding:14px;border-radius:12px;background:var(--mint2)">
+            <strong style="font-size:12px;color:var(--navy)">Decision policy</strong>
+            <div class="meta" style="margin-top:7px">Below 30%: allow · 30–70%: step-up verification · 70%+: cooling-off + guardian alert.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="guardian" class="panel hidden">
+      <div class="page-head">
+        <div><h2>Guardian Dashboard</h2><p>Review transactions routed to human approval.</p></div>
+        <button class="secondary" onclick="loadPending()">Refresh queue</button>
+      </div>
+      <div class="card">
+        <div id="pendingList" class="txn-list"><div class="empty">Loading guardian queue…</div></div>
+      </div>
+    </section>
+
+    <section id="log" class="panel hidden">
+      <div class="page-head">
+        <div><h2>Risk Engine Log</h2><p>Shared in-memory audit trail from the live backend.</p></div>
+        <button class="secondary" onclick="loadTransactions()">Refresh log</button>
+      </div>
+      <div class="card">
+        <div id="logList" class="txn-list"><div class="empty">Loading audit log…</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const pretty = s => String(s).replaceAll('_',' ').replace(/\b\w/g, c => c.toUpperCase());
+
+function showToast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2600);
+}
+function num(id){ return Number($(id).value); }
+
+function formData(){
+  return {
+    customer_id:$("customer_id").value.trim(),
+    payee:$("payee").value.trim(),
+    new_payee:num("new_payee"),
+    amount:num("amount"),
+    typical_amount:num("typical_amount"),
+    hour:num("hour"),
+    off_hours:num("off_hours"),
+    urgency_language_flag:num("urgency_language_flag"),
+    behavioral_anomaly_flag:num("behavioral_anomaly_flag"),
+    velocity_last_hour:num("velocity_last_hour")
+  };
+}
+
+async function api(path, options={}){
+  const res=await fetch(path,{headers:{"Content-Type":"application/json"},...options});
+  if(!res.ok){
+    let detail="Request failed";
+    try { const x=await res.json(); detail=x.detail || detail; } catch {}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+$("txForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  try{
+    const data=await api("/score",{method:"POST",body:JSON.stringify(formData())});
+    renderResult(data);
+  }catch(err){ showToast(err.message); }
+});
+
+function renderResult(data){
+  $("result").classList.add("show");
+  const pct=(data.risk_score*100).toFixed(1);
+  $("score").textContent=pct+"%";
+  $("scoreBar").style.width=pct+"%";
+  const d=$("decision");
+  d.className="decision "+(data.decision==="allow"?"allow":data.decision==="step_up_verification"?"step":"block");
+  d.textContent=pretty(data.decision);
+  $("decisionText").textContent =
+    data.decision==="allow" ? "Transfer can proceed immediately." :
+    data.decision==="step_up_verification" ? "Additional verification is required." :
+    "Transfer is held for guardian review.";
+  const entries=Object.entries(data.feature_contributions||{}).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  $("contributions").innerHTML=entries.slice(0,3).map(([k,v])=>
+    `<div class="contribution"><span>${pretty(k)}</span><span class="${v>=0?'positive':'negative'}">${v>=0?'+':''}${v}</span></div>`
+  ).join("");
+  $("guardianAlert").classList.toggle("hidden",data.decision!=="cooling_off_guardian_alert");
+}
+
+$("clearBtn").onclick=()=>{ $("result").classList.remove("show"); };
+
+function fillScenario(type){
+  const presets={
+    low:{customer_id:"CUST-1042",payee:"Rahul Sharma",amount:2500,typical_amount:3000,hour:14,velocity_last_hour:1,new_payee:0,off_hours:0,urgency_language_flag:0,behavioral_anomaly_flag:0},
+    medium:{customer_id:"CUST-1042",payee:"Anita Verma",amount:12000,typical_amount:4000,hour:20,velocity_last_hour:2,new_payee:0,off_hours:0,urgency_language_flag:0,behavioral_anomaly_flag:1},
+    high:{customer_id:"CUST-1042",payee:"Unknown Payee",amount:85000,typical_amount:5000,hour:2,velocity_last_hour:5,new_payee:1,off_hours:1,urgency_language_flag:1,behavioral_anomaly_flag:1}
+  };
+  const p=presets[type];
+  Object.entries(p).forEach(([k,v])=>{ if($(k)) $(k).value=v; });
+  showToast(type[0].toUpperCase()+type.slice(1)+"-risk scenario loaded");
+}
+$("lowScenario").onclick=()=>fillScenario("low");
+$("mediumScenario").onclick=()=>fillScenario("medium");
+$("highScenario").onclick=()=>fillScenario("high");
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.add("hidden"));
+    btn.classList.add("active"); $(btn.dataset.tab).classList.remove("hidden");
+    if(btn.dataset.tab==="guardian") loadPending();
+    if(btn.dataset.tab==="log") loadTransactions();
+  };
+});
+
+async function loadPending(){
+  const box=$("pendingList");
+  try{
+    const items=await api("/guardian/pending");
+    if(!items.length){ box.innerHTML='<div class="empty"><strong>No pending guardian decisions</strong><br><span class="meta">High-risk transactions will appear here automatically.</span></div>'; return; }
+    box.innerHTML=items.map(t=>txnCard(t,true)).join("");
+  }catch(err){ box.innerHTML=`<div class="empty">${esc(err.message)}</div>`; }
+}
+
+function txnCard(t, guardian=false){
+  const score=(Number(t.risk_score)*100).toFixed(1);
+  const drivers=(t.top_features||[]).map(x=>`<span class="driver">${pretty(x[0])}: ${Number(x[1])>=0?'+':''}${x[1]}</span>`).join("");
+  return `<div class="txn">
+    <div class="txn-top"><div><div class="txn-title">${esc(t.payee||"Unknown payee")}</div><div class="meta">${esc(t.customer_id)} · ${esc(t.timestamp||"")}</div></div><span class="status ${esc(t.status)}">${pretty(t.status)}</span></div>
+    <div class="txn-bottom"><div><div class="amount">₹${Number(t.amount).toLocaleString("en-IN")}</div><div class="smallscore">Model risk: <strong>${score}%</strong></div></div>
+      ${guardian?`<div class="actions" style="margin:0"><button class="primary" onclick="decide('${t.id}',true)">Approve</button><button class="danger" onclick="decide('${t.id}',false)">Deny</button></div>`:""}
+    </div>
+    <div class="drivers">${drivers||'<span class="driver">No driver data</span>'}</div>
+    ${t.guardian_note?`<div class="meta" style="margin-top:9px">Guardian note: ${esc(t.guardian_note)}</div>`:""}
+  </div>`;
+}
+
+async function decide(id,approve){
+  const note=prompt(approve?"Optional guardian note:":"Reason for denial:");
+  if(!approve && note===null) return;
+  try{
+    await api("/guardian/approve",{method:"POST",body:JSON.stringify({transaction_id:id,approve,guardian_note:note||null})});
+    showToast(approve?"Transaction approved":"Transaction denied");
+    loadPending();
+  }catch(err){ showToast(err.message); }
+}
+
+async function loadTransactions(){
+  const box=$("logList");
+  try{
+    const items=await api("/transactions");
+    if(!items.length){ box.innerHTML='<div class="empty"><strong>Audit log is empty</strong><br><span class="meta">Analyze or submit a transaction to populate it.</span></div>'; return; }
+    box.innerHTML=items.map(t=>txnCard(t,false)).join("");
+  }catch(err){ box.innerHTML=`<div class="empty">${esc(err.message)}</div>`; }
+}
+
+loadTransactions();
+</script>
+</body>
+</html>
