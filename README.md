@@ -150,5 +150,3 @@ AEGIS was developed as a prototype for protecting vulnerable customers from digi
 The system focuses on proactive prevention, explainable AI, and human-in-the-loop protection.
 
 ---
-
-Built for a Hackathon 🚀
